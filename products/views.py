@@ -59,3 +59,12 @@ class ProductViewSet(viewsets.ModelViewSet):
         return qs
 
 
+class ProductImageViewSet(viewsets.ModelViewSet):
+    queryset = ProductImage.objects.all().order_by("position")
+    serializer_class = ProductImageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+

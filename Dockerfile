@@ -33,4 +33,4 @@ USER appuser
 EXPOSE 8000
 
 # Default command (Production ready)
-CMD ["gunicorn", "backend_ecommerce.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "drf_commerce_engine.wsgi:application", "--bind", "0.0.0.0:8000"]

@@ -62,7 +62,7 @@ services:
   celery_worker:
     build:
       context: .
-    command: celery -A backend_ecommerce worker -l info
+    command: celery -A drf_commerce_engine worker -l info
     volumes:
       - .:/app
     env_file:
@@ -82,7 +82,7 @@ services:
   celery_beat:
     build:
       context: .
-    command: celery -A backend_ecommerce beat -l info
+    command: celery -A drf_commerce_engine beat -l info
     volumes:
       - .:/app
     env_file:
