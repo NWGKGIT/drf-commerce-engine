@@ -7,12 +7,12 @@ env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
-SECRET_KEY = env("SECRET_KEY", default="dev-secret-key")
-DEBUG = env.bool("DEBUG", default=True)
+SECRET_KEY = env("SECRET_KEY", default="dev-secret-key")# don't add a default key in prod (insecure)
+DEBUG = env.bool("DEBUG", default=True)# don't add a default key in prod (insecure)
 
 INITIAL_ADMIN_TOKEN = env(
     "INITIAL_ADMIN_TOKEN",
-    default="your-default-key",  # don't add a default key (insecure)
+    default="your-default-key",  # don't add a default key in prod (insecure)
 )
 
 ALLOWED_HOSTS = [
@@ -22,7 +22,8 @@ ALLOWED_HOSTS = [
     "server",
     ".ngrok-free.app",
     ".ngrok-free.dev",
-]  # you can use environment variables here
+]  # you can use environment variables here and defintely change for production
+
 CSRF_TRUSTED_ORIGINS = [
     "https://*.ngrok-free.app",
 ]
@@ -168,8 +169,8 @@ REST_AUTH = {
 ACCOUNT_AUTHENTICATED_REDIRECT_URL = "/api/"
 
 # --- CORS ---
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True #DEFINITELY CHANGE IN PRODUCTION (Specific list of your frontend URLs)
+CORS_ALLOW_CREDENTIALS = True #DEFINITELY CHANGE IN PRODUCTION (Specific list of your frontend URLs)
 
 
 # --- Email ---
