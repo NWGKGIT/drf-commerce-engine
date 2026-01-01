@@ -954,7 +954,7 @@ docker compose restart server
 
 ### Project Files
 
-- **OpenAPI Spec**: `E-Commerce API (1).yaml` (can be imported into API clients)
+- **OpenAPI Spec**: `E-Commerce API.yaml` (can be imported into API clients)
 - **Docker Guide**: `README.Docker.md` (detailed Docker setup)
 
 ---
