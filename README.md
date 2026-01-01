@@ -1,6 +1,6 @@
 # DRF E-Commerce Engine
 
-A comprehensive, production-ready Django REST Framework e-commerce API with full payment integration, inventory management, and asynchronous task processing.
+A comprehensive, B2C Django REST Framework e-commerce API with full payment integration, inventory management, and asynchronous task processing.
 
 ## 📋 Table of Contents
 
