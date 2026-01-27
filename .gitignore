@@ -1,0 +1,91 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.pyc
+pip-wheel-metadata/
+*.egg-info/
+.eggs/
+dist/
+build/
+wheelhouse/
+
+# Virtualenv / env files
+.env
+.venv/
+venv/
+ENV/
+env/
+venv.bak/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+.collectstatic/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+celeryd.pid
+*.pid
+
+# RabbitMQ / service data (common local volume dirs)
+rabbitmq_data/
+rabbitmq/
+rabbitmq-*/ 
+redis_data/
+postgres_data/
+data/
+volumes/
+
+# Docker
+docker-compose.override.yml
+docker-compose.*.yml
+.docker/
+docker-compose.local.yml
+
+# Node / frontend (if present)
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+build/
+
+# IDEs / editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Testing / coverage / tooling
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+coverage.xml
+.cache/
+mypy_cache/
+.pytype/
+.pyre/
+
+# Secrets / credentials / keys
+credentials.json
+secrets/
+*.pem
+*.key
+*.crt
+
+# Misc
+*.bak
+*.swp
