@@ -89,3 +89,8 @@ secrets/
 # Misc
 *.bak
 *.swp
+
+
+
+# others
+TASKS.md
