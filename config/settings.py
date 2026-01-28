@@ -183,6 +183,7 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "The complete RESTful API for my E-commerce platform.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    "APPS": ["apps.accounts"],
 }
 
 STATIC_URL = "static/"
