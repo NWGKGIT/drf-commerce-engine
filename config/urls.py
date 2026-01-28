@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-# from apps.accounts.views import SecureAdminSetupView
+from apps.accounts.views import SecureAdminSetupView
 from rest_framework.routers import DefaultRouter
 from drf_spectacular.views import (
     SpectacularAPIView,
@@ -15,9 +15,9 @@ urlpatterns = [
     # DRF Auth Endpoints
     path("api/auth/", include("dj_rest_auth.urls")),
     path("api/auth/registration/", include("dj_rest_auth.registration.urls")),
-    # path(
-    #     "api/accounts/", include("apps.accounts.urls")
-    # ),  # account related shit like addresses.
+    path(
+        "api/accounts/", include("apps.accounts.urls", namespace="accounts")
+    ),  # account related shit like addresses.
     # path("api/", include("apps.products.urls")),
     path("auth/", include("allauth.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
@@ -32,7 +32,7 @@ urlpatterns = [
         name="redoc",
     ),
     # path("api/cart/", include("apps.cart.urls"), name="cart"),
-    # path("api/auth/init-admin/", SecureAdminSetupView.as_view(), name="init-admin"),
+    path("api/auth/init-admin/", SecureAdminSetupView.as_view(), name="init-admin"),
     # path("api/orders/", include("apps.orders.urls"), name="orders"),
     # path("api/reviews/", include("apps.reviews.urls"), name="reviews"),
     # path("api/wishlist/", include("apps.wishlist.urls"), name="wishlist"),
