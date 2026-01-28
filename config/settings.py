@@ -147,6 +147,9 @@ ACCOUNT_SIGNUP_FIELDS = {
     "first_name": {"required": False},
     "last_name": {"required": False},
 }
+# LOGIN_URL = '/auth/login/'
+# LOGIN_REDIRECT_URL = '/api/'
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL='/api/'
 
 # --- REST Framework ---
 REST_FRAMEWORK = {

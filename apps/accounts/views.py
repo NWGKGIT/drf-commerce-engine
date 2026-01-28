@@ -61,7 +61,7 @@ class AddressViewSet(viewsets.ModelViewSet):
             is_default=False
         )
 
-
+@extend_schema(exclude=True)
 @api_view(["GET"])
 @permission_classes([permissions.AllowAny])
 @ensure_csrf_cookie

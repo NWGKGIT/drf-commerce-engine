@@ -145,23 +145,12 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/accounts/csrf/:
-    get:
-      operationId: accounts_csrf_retrieve
-      tags:
-      - accounts
-      security:
-      - cookieAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
-  /api/auth/init-admin/:
+  /api/accounts/admin-setup/:
     post:
-      operationId: auth_init_admin_create
+      operationId: accounts_admin_setup_create
       description: Initialize the first superuser using a secure token.
       tags:
-      - auth
+      - accounts
       requestBody:
         content:
           application/json:
