@@ -36,13 +36,13 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Created Apps
     "apps.accounts.apps.AccountsConfig",
-    # "apps.cart.apps.CartConfig",
-    # "apps.orders.apps.OrdersConfig",
+    "apps.cart.apps.CartConfig",
+    "apps.orders.apps.OrdersConfig",
     # "apps.payments.apps.PaymentsConfig",
-    # "apps.products.apps.ProductsConfig",
+    "apps.products.apps.ProductsConfig",
     # "apps.reviews.apps.ReviewsConfig",
     # "apps.wishlist.apps.WishlistConfig",
-    # "apps.inventory.apps.InventoryConfig",
+    "apps.inventory.apps.InventoryConfig",
     "apps.core.apps.CoreConfig",
     # Third Party
     "rest_framework",
