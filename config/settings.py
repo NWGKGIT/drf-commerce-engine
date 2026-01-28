@@ -163,7 +163,7 @@ REST_AUTH = {
     # "REGISTER_SERIALIZER": "apps.accounts.serializers.CustomRegisterSerializer",
     # "USER_DETAILS_SERIALIZER": "apps.accounts.serializers.UserDetailsSerializer",
     # "LOGIN_SERIALIZER": "apps.accounts.serializers.CustomLoginSerializer",
-    # "LOGIN_ON_EMAIL_CONFIRMATION": True,  # Default is usually fine unless you need custom logic
+    "LOGIN_ON_EMAIL_CONFIRMATION": True,  # Default is usually fine unless you need custom logic
 }
 
 ACCOUNT_AUTHENTICATED_REDIRECT_URL = "/api/"
