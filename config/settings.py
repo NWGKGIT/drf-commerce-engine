@@ -35,7 +35,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Created Apps
-    # "apps.accounts.apps.AccountsConfig",
+    "apps.accounts.apps.AccountsConfig",
     # "apps.cart.apps.CartConfig",
     # "apps.orders.apps.OrdersConfig",
     # "apps.payments.apps.PaymentsConfig",
@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     # "apps.reviews.apps.ReviewsConfig",
     # "apps.wishlist.apps.WishlistConfig",
     # "apps.inventory.apps.InventoryConfig",
-    # "apps.core.apps.CoreConfig",
+    "apps.core.apps.CoreConfig",
     # Third Party
     "rest_framework",
     "rest_framework.authtoken",  # Required by dj-rest-auth even if using session
@@ -126,7 +126,7 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # --- Authentication & Authorization ---
-# AUTH_USER_MODEL = "accounts.User"
+AUTH_USER_MODEL = "accounts.User"
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
@@ -160,9 +160,9 @@ REST_FRAMEWORK = {
 REST_AUTH = {
     "USE_JWT": False,  # Explicitly set false if using sessions
     "SESSION_LOGIN": True,
-    # "REGISTER_SERIALIZER": "apps.accounts.serializers.CustomRegisterSerializer",
-    # "USER_DETAILS_SERIALIZER": "apps.accounts.serializers.UserDetailsSerializer",
-    # "LOGIN_SERIALIZER": "apps.accounts.serializers.CustomLoginSerializer",
+    "REGISTER_SERIALIZER": "apps.accounts.serializers.CustomRegisterSerializer",
+    "USER_DETAILS_SERIALIZER": "apps.accounts.serializers.UserDetailsSerializer",
+    "LOGIN_SERIALIZER": "apps.accounts.serializers.CustomLoginSerializer",
     "LOGIN_ON_EMAIL_CONFIRMATION": True,  # Default is usually fine unless you need custom logic
 }
 
