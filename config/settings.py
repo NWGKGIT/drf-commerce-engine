@@ -42,8 +42,8 @@ INSTALLED_APPS = [
     "apps.orders.apps.OrdersConfig",
     # "apps.payments.apps.PaymentsConfig",
     "apps.products.apps.ProductsConfig",
-    # "apps.reviews.apps.ReviewsConfig",
-    # "apps.wishlist.apps.WishlistConfig",
+    "apps.reviews.apps.ReviewsConfig",
+    "apps.wishlist.apps.WishlistConfig",
     "apps.inventory.apps.InventoryConfig",
     "apps.core.apps.CoreConfig",
     # Third Party
@@ -195,7 +195,7 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "The complete RESTful API for my E-commerce platform.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-    "APPS": ["apps.accounts", "apps.products", "apps.orders", "apps.inventory"],
+    "APPS": ["apps.accounts", "apps.products", "apps.orders", "apps.inventory", "apps.reviews", "apps.wishlist"],
 }
 
 STATIC_URL = "static/"
