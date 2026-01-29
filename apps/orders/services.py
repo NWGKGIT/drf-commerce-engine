@@ -7,7 +7,9 @@ from apps.cart.models import Cart
 from apps.accounts.models import Address
 from apps.inventory.services import deduct_stock, restore_stock
 from apps.inventory.models import InventoryReservation
-from apps.payments.models import Payment
+
+# from apps.payments.models import Payment
+from .signals import order_cancelled_signal
 
 
 def _generate_order_number():
@@ -96,19 +98,25 @@ def create_order_from_cart(user, address_id=None):
 
     return order
 
+
 @transaction.atomic
 def cancel_order(order, user_initiated=False):
     """
     Cancels an order, restores inventory, and voids pending payments.
     """
     if order.status == OrderStatus.CANCELLED:
-        return order 
-        
-    if order.status == OrderStatus.COMPLETED:
-        raise ValidationError("Cannot cancel a completed order. Please request a return.")
+        return order
 
-    if user_initiated and order.status not in [OrderStatus.PENDING_PAYMENT, OrderStatus.PAYMENT_FAILED]:
-         raise ValidationError("Order is already processing. Contact support to cancel.")
+    if order.status == OrderStatus.COMPLETED:
+        raise ValidationError(
+            "Cannot cancel a completed order. Please request a return."
+        )
+
+    if user_initiated and order.status not in [
+        OrderStatus.PENDING_PAYMENT,
+        OrderStatus.PAYMENT_FAILED,
+    ]:
+        raise ValidationError("Order is already processing. Contact support to cancel.")
 
     # Restore Stock
     # Iterate over items and add quantity back to inventory
@@ -123,9 +131,9 @@ def cancel_order(order, user_initiated=False):
     order.save()
 
     # Cancel Pending Payments
-    Payment.objects.filter(
-        order=order, 
-        status=Payment.PaymentStatus.PENDING
-    ).update(status=Payment.PaymentStatus.CANCELLED)
+    # Payment.objects.filter(order=order, status=Payment.PaymentStatus.PENDING).update(
+    #     status=Payment.PaymentStatus.CANCELLED
+    # )
 
+    order_cancelled_signal.send(sender=order.__class__, order=order)
     return order
