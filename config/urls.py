@@ -13,7 +13,7 @@ urlpatterns = [
     path("api/cart/", include("apps.cart.urls")),
     path("api/orders/", include("apps.orders.urls")),
     path("api/inventory/", include("apps.inventory.urls")),
-    path("api/", include("apps.products.urls")),
+    path("api/products/", include("apps.products.urls")),
     
     path("api/auth/", include("dj_rest_auth.urls")),
     path("api/auth/registration/", include("dj_rest_auth.registration.urls")),
@@ -35,6 +35,7 @@ urlpatterns = [
     
     path("api/reviews/", include("apps.reviews.urls")),
     path("api/wishlist/", include("apps.wishlist.urls")),
+    path("api/payments/", include("apps.payments.urls")),
     
     path(
         "password-reset/confirm/<uidb64>/<token>/",
