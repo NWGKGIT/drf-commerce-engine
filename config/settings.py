@@ -7,8 +7,10 @@ env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
-SECRET_KEY = env("SECRET_KEY", default="dev-secret-key")# don't add a default key in prod (insecure)
-DEBUG = env.bool("DEBUG", default=True)# don't add a default key in prod (insecure)
+SECRET_KEY = env(
+    "SECRET_KEY", default="dev-secret-key"
+)  # don't add a default key in prod (insecure)
+DEBUG = env.bool("DEBUG", default=True)  # don't add a default key in prod (insecure)
 
 INITIAL_ADMIN_TOKEN = env(
     "INITIAL_ADMIN_TOKEN",
@@ -141,16 +143,18 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
-ACCOUNT_CONFIRM_EMAIL_ON_GET = True  # Set True for easier development, False for Prod security
+ACCOUNT_CONFIRM_EMAIL_ON_GET = (
+    True  # Set True for easier development, False for Prod security
+)
 ACCOUNT_SIGNUP_FIELDS = {
     "email*": {"required": True},
     "first_name": {"required": False},
     "last_name": {"required": False},
 }
 
-LOGIN_URL = '/auth/login/'
-LOGIN_REDIRECT_URL = '/api/'
-ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL='/api/'
+LOGIN_URL = "/auth/login/"
+LOGIN_REDIRECT_URL = "/api/"
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = "/api/"
 
 # --- REST Framework ---
 REST_FRAMEWORK = {
@@ -173,8 +177,12 @@ REST_AUTH = {
 ACCOUNT_AUTHENTICATED_REDIRECT_URL = "/api/"
 
 # --- CORS ---
-CORS_ALLOW_ALL_ORIGINS = True #DEFINITELY CHANGE IN PRODUCTION (Specific list of your frontend URLs)
-CORS_ALLOW_CREDENTIALS = True #DEFINITELY CHANGE IN PRODUCTION (Specific list of your frontend URLs)
+CORS_ALLOW_ALL_ORIGINS = (
+    True  # DEFINITELY CHANGE IN PRODUCTION (Specific list of your frontend URLs)
+)
+CORS_ALLOW_CREDENTIALS = (
+    True  # DEFINITELY CHANGE IN PRODUCTION (Specific list of your frontend URLs)
+)
 
 
 # --- Email ---
@@ -187,7 +195,7 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "The complete RESTful API for my E-commerce platform.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-    "APPS": ["apps.accounts"],
+    "APPS": ["apps.accounts", "apps.products", "apps.orders", "apps.inventory"],
 }
 
 STATIC_URL = "static/"
