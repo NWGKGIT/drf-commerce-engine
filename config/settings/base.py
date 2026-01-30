@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "apps.core.apps.CoreConfig",
     # Third Party
     "rest_framework",
+    'rest_framework_simplejwt.token_blacklist',
     "rest_framework.authtoken",
     "dj_rest_auth",
     "allauth",
@@ -138,6 +139,7 @@ ACCOUNT_AUTHENTICATED_REDIRECT_URL = "/api/"
 # --- REST Framework ---
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
@@ -145,14 +147,34 @@ REST_FRAMEWORK = {
 }
 
 REST_AUTH = {
-    "USE_JWT": False,
-    "SESSION_LOGIN": True,
+    "USE_JWT": True,
+    "JWT_AUTH_COOKIE": "access-token",
+    "JWT_AUTH_REFRESH_COOKIE": "refresh-token",
+    "JWT_AUTH_HTTPONLY": True,
+    "SESSION_LOGIN": False,
     "REGISTER_SERIALIZER": "apps.accounts.serializers.CustomRegisterSerializer",
     "USER_DETAILS_SERIALIZER": "apps.accounts.serializers.UserDetailsSerializer",
     "LOGIN_SERIALIZER": "apps.accounts.serializers.CustomLoginSerializer",
     "LOGIN_ON_EMAIL_CONFIRMATION": True,
 }
 
+
+# JWT CONFIG
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),  
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "ROTATE_REFRESH_TOKENS": False,  
+    "BLACKLIST_AFTER_ROTATION": False,
+    "UPDATE_LAST_LOGIN": True,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+}
 # --- Spectacular ---
 SPECTACULAR_SETTINGS = {
     "TITLE": "E-Commerce API",
@@ -160,6 +182,21 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "APPS": ["apps.accounts", "apps.products", "apps.orders", "apps.inventory", "apps.reviews", "apps.wishlist"],
+    "COMPONENT_SPLIT_PATCH":True,
+    "SCHEMA_PATH_PREFIX": r'/api/v[0-9]+/',
+    "SECURITY":[
+        {"jwtAuth": []},
+    ],
+    "APPEND_COMPONENTS": {
+        "securitySchemes": {
+            "jwtAuth": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "Authorization",
+                "description": "Token-based authentication with JWT",
+            }
+        }
+    },
 }
 
 # --- Celery ---
