@@ -15,11 +15,30 @@ class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsAdminOrOwner]
     serializer_class = OrderSerializer
     http_method_names = ["get", "post", "patch", "head", "options"]
+    
+    # Enable filtering and ordering
+    filterset_fields = ['status']
+    ordering_fields = ['created_at', 'total_amount']
+    ordering = ['-created_at']
 
     def get_queryset(self):
-        if self.request.user.is_staff:
-            return Order.objects.all().order_by("-created_at")
-        return Order.objects.filter(user=self.request.user).order_by("-created_at")
+        qs = Order.objects.select_related('user').prefetch_related(
+            'items',
+            'items__product'
+        ).order_by("-created_at")
+        
+        if not self.request.user.is_staff:
+            qs = qs.filter(user=self.request.user)
+        
+        # Date range filtering
+        start_date = self.request.query_params.get("start_date")
+        end_date = self.request.query_params.get("end_date")
+        if start_date:
+            qs = qs.filter(created_at__gte=start_date)
+        if end_date:
+            qs = qs.filter(created_at__lte=end_date)
+        
+        return qs
 
     def get_serializer_class(self):
         if self.action in ["partial_update", "update"]:

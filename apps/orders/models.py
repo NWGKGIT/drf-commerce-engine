@@ -9,18 +9,25 @@ class OrderStatus(models.TextChoices):
     CANCELLED = 'cancelled', 'Cancelled'
     COMPLETED = 'completed', 'Completed'
 class Order(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='orders')
-    order_number = models.CharField(max_length=50, unique=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='orders', db_index=True)
+    order_number = models.CharField(max_length=50, unique=True, db_index=True)
     status = models.CharField(
         max_length=20,
         choices=OrderStatus.choices,
-        default=OrderStatus.PENDING_PAYMENT
+        default=OrderStatus.PENDING_PAYMENT,
+        db_index=True,
     )
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default='ETB')
     shipping_address_snapshot = models.JSONField() 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['-created_at']),
+        ]
 
     def __str__(self):
         return self.order_number

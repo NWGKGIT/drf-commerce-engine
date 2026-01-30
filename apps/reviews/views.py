@@ -6,9 +6,14 @@ from apps.orders.models import OrderItem, OrderStatus
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
+    queryset = Review.objects.select_related('user', 'product').order_by('-created_at')
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsEmailVerified]
+    
+    # Enable filtering and ordering
+    filterset_fields = ['product', 'rating', 'is_verified_purchase']
+    ordering_fields = ['created_at', 'rating']
+    ordering = ['-created_at']
 
     def perform_create(self, serializer):
         user = self.request.user

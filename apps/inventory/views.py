@@ -48,7 +48,8 @@ class InventoryReservationViewSet(viewsets.ModelViewSet):
         if current_cart_id:
             active_reservations = active_reservations.exclude(cart_id=current_cart_id)
 
-        reserved_quantity = sum(r.quantity for r in active_reservations)
+        from django.db.models import Sum
+        reserved_quantity = active_reservations.aggregate(total=Sum('quantity'))['total'] or 0
         available_quantity = actual_stock - reserved_quantity
 
         if available_quantity >= quantity:

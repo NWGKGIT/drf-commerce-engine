@@ -10,15 +10,19 @@ class Category(models.Model):
         null=True,
         blank=True,
         related_name="subcategories",
+        db_index=True,
     )
     name = models.CharField(max_length=255)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, db_index=True)
     description = models.TextField(blank=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name_plural = "Categories"
+        indexes = [
+            models.Index(fields=['parent_category', 'is_active']),
+        ]
 
     def __str__(self):
         return self.name
@@ -29,9 +33,9 @@ class Product(models.Model):
         Category, on_delete=models.PROTECT, related_name="products"
     )  
     name = models.CharField(max_length=255)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, db_index=True)
     description = models.TextField(blank=True)
-    sku = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    sku = models.CharField(max_length=50, unique=True, null=True, blank=True, db_index=True)
 
     price = models.DecimalField(max_digits=10, decimal_places=2)
     discount_price = models.DecimalField(
@@ -39,10 +43,16 @@ class Product(models.Model):
     )
     currency = models.CharField(max_length=3, default="ETB")
     specifications = models.JSONField(default=dict)
-    is_featured = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    is_featured = models.BooleanField(default=False, db_index=True)
+    is_active = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['category', 'is_active']),
+            models.Index(fields=['-created_at']),
+        ]
 
     def __str__(self):
         return self.name
@@ -64,9 +74,7 @@ class Product(models.Model):
                 "Discount price cannot be greater than the original price."
             )
 
-    @property
-    def total_quantity(self):
-        return self.inventory_items.aggregate(total=Sum("quantity"))["total"] or 0
+
 
 
 class ProductImage(models.Model):

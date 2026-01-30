@@ -26,7 +26,9 @@ class CartItemViewSet(viewsets.ModelViewSet):
     serializer_class = CartItemSerializer
 
     def get_queryset(self):
-        return CartItem.objects.filter(cart__user=self.request.user)
+        return CartItem.objects.filter(
+            cart__user=self.request.user
+        ).select_related('product', 'cart')
 
     def create(self, request, *args, **kwargs):
         cart, _ = Cart.objects.get_or_create(user=request.user)

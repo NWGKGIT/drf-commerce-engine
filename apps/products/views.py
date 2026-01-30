@@ -34,27 +34,36 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = (
         Product.objects.filter(is_active=True)
         .select_related("category")
-        .prefetch_related("images")
+        .prefetch_related("images", "inventory_items")
     )
     serializer_class = ProductSerializer
     permission_classes = [IsAdminOrReadOnly]
+    
+    # Enable search and ordering
+    search_fields = ['name', 'description', 'sku']
+    ordering_fields = ['price', 'name', 'created_at', 'discount_price']
+    ordering = ['-created_at']
 
     def get_queryset(self):
         qs = super().get_queryset()
 
-        # Optional filters
+        # Category filtering
         category = self.request.query_params.get("category")
-        featured = self.request.query_params.get("featured")
-        search = self.request.query_params.get("search")
-
         if category:
             qs = qs.filter(category__slug=category)
 
+        # Featured filtering
+        featured = self.request.query_params.get("featured")
         if featured:
             qs = qs.filter(is_featured=True)
 
-        if search:
-            qs = qs.filter(name__icontains=search)
+        # Price range filtering
+        min_price = self.request.query_params.get("min_price")
+        max_price = self.request.query_params.get("max_price")
+        if min_price:
+            qs = qs.filter(price__gte=min_price)
+        if max_price:
+            qs = qs.filter(price__lte=max_price)
 
         return qs
 

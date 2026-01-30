@@ -30,9 +30,9 @@ class InventoryReservation(models.Model):
         blank=True,
         related_name="reservations",
     )
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, db_index=True)
     quantity = models.IntegerField()
-    expires_at = models.DateTimeField()
+    expires_at = models.DateTimeField(db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -47,3 +47,6 @@ class InventoryReservation(models.Model):
             )
         ]
         unique_together = ("cart", "product")
+        indexes = [
+            models.Index(fields=['product', 'expires_at']),
+        ]
