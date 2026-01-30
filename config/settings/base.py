@@ -183,7 +183,6 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "APPS": ["apps.accounts", "apps.products", "apps.orders", "apps.inventory", "apps.reviews", "apps.wishlist"],
     "COMPONENT_SPLIT_PATCH":True,
-    "SCHEMA_PATH_PREFIX": r'/api/v[0-9]+/',
     "SECURITY":[
         {"jwtAuth": []},
     ],
