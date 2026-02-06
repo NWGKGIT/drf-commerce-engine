@@ -1,0 +1,21 @@
+databases:
+  - name: commerce-db
+    databaseName: commerce
+    user: commerce_user
+
+services:
+  - type: web
+    name: drf-commerce-engine
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0 
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: 4
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+    linkedDatabase: commerce-db
