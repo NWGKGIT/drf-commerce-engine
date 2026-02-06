@@ -40,3 +40,6 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 # EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 # EMAIL_HOST = env("EMAIL_HOST")
 # ... implement later
+
+ROOT_URLCONF = 'config.urls'
+WSGI_APPLICATION = 'config.wsgi.application'
