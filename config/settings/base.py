@@ -13,7 +13,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # SECURITY: Keep secret key here or override in prod
 SECRET_KEY = env("SECRET_KEY", default="dev-secret-key")
-
+INITIAL_ADMIN_TOKEN= env("INITIAL_ADMIN_TOKEN")
 # Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -96,7 +96,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
-
+ 
 # Internationalization
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
@@ -189,7 +189,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "APPS": ["apps.accounts", "apps.products", "apps.orders", "apps.inventory", "apps.reviews", "apps.wishlist"],
     "COMPONENT_SPLIT_PATCH":True,
-    "SCHEMA_PATH_PREFIX": r'/api/v[0-9]+/',
+    'SCHEMA_PATH_PREFIX': r'/api/',
     "SECURITY":[
         {"jwtAuth": []},
     ],

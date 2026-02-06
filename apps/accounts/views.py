@@ -61,6 +61,7 @@ class AddressViewSet(viewsets.ModelViewSet):
             is_default=False
         )
 
+
 @extend_schema(exclude=True)
 @api_view(["GET"])
 @permission_classes([permissions.AllowAny])
@@ -76,7 +77,7 @@ class SecureAdminSetupView(APIView):
     @extend_schema(
         request=AdminSetupSerializer,
         responses={201: None},
-        description="Initialize the first superuser using a secure token.",
+        description="Create a superuser using a secure token.",
     )
     def post(self, request):
         serializer = AdminSetupSerializer(data=request.data)
@@ -84,16 +85,27 @@ class SecureAdminSetupView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         validated_data = serializer.validated_data
         setup_token = validated_data.get("setup_token")
+
         if not constant_time_compare(setup_token, settings.INITIAL_ADMIN_TOKEN):
             return Response(
                 {"error": "Invalid setup token."}, status=status.HTTP_401_UNAUTHORIZED
             )
         try:
             with transaction.atomic():
-                if User.objects.filter(is_superuser=True).exists():
+                admin_count = User.objects.filter(
+                    is_superuser=True
+                ).count()  # only 5 superusers allowed
+                if admin_count >= 5:
                     return Response(
-                        {"error": "Admin already initialized."},
+                        {
+                            "error": "Maximum admin limit (5) reached. No more admins can be created."
+                        },
                         status=status.HTTP_403_FORBIDDEN,
+                    )
+                if User.objects.filter(email=validated_data["email"]).exists():
+                    return Response(
+                        {"error": "A user with this email already exists."},
+                        status=status.HTTP_400_BAD_REQUEST,
                     )
                 user = User.objects.create_superuser(
                     email=validated_data["email"], password=validated_data["password"]
@@ -105,7 +117,8 @@ class SecureAdminSetupView(APIView):
                     primary=True,
                 )
             return Response(
-                {"message": "Admin account created."}, status=status.HTTP_201_CREATED
+                {"message": "Admin account created successfully."},
+                status=status.HTTP_201_CREATED,
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

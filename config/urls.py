@@ -7,20 +7,22 @@ from drf_spectacular.views import (
     SpectacularRedocView,
 )
 
+api_urlpatterns = [
+    path("cart/", include("apps.cart.urls")),
+    path("orders/", include("apps.orders.urls")),
+    path("inventory/", include("apps.inventory.urls")),
+    path("reviews/", include("apps.reviews.urls")),
+    path("wishlist/", include("apps.wishlist.urls")),
+    path("payments/", include("apps.payments.urls")),
+    path("auth/", include("dj_rest_auth.urls")),
+    path("auth/registration/", include("dj_rest_auth.registration.urls")),
+    path("accounts/", include("apps.accounts.urls")),
+    path("", include("apps.products.urls")),
+]
 urlpatterns = [
     path("admin/", admin.site.urls),
-    
-    path("api/cart/", include("apps.cart.urls")),
-    path("api/orders/", include("apps.orders.urls")),
-    path("api/inventory/", include("apps.inventory.urls")),
-    path("api/", include("apps.products.urls")),
-    
-    path("api/auth/", include("dj_rest_auth.urls")),
-    path("api/auth/registration/", include("dj_rest_auth.registration.urls")),
-    path("api/accounts/", include("apps.accounts.urls")),
-    
+    path("api/", include(api_urlpatterns)),
     path("auth/", include("allauth.urls")),
-    
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/schema/swagger-ui/",
@@ -32,11 +34,6 @@ urlpatterns = [
         SpectacularRedocView.as_view(url_name="schema"),
         name="redoc",
     ),
-    
-    path("api/reviews/", include("apps.reviews.urls")),
-    path("api/wishlist/", include("apps.wishlist.urls")),
-    path("api/payments/", include("apps.payments.urls")),
-    
     path(
         "password-reset/confirm/<uidb64>/<token>/",
         lambda r, uidb64, token: HttpResponse(
