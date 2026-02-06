@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.http import HttpResponse
+from django.views.generic import RedirectView
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
@@ -41,4 +42,5 @@ urlpatterns = [
         ),
         name="password_reset_confirm",
     ),
+    path("", RedirectView.as_view(url="/api/schema/swagger-ui/", permanent=False)),
 ]
