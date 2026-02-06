@@ -4,18 +4,27 @@ databases:
     user: commerce_user
 
 services:
+  - type: redis
+    name: commerce-redis
+    ipAllowList: []
+    
   - type: web
     name: drf-commerce-engine
     runtime: python
     buildCommand: "./build.sh"
-    startCommand: "gunicorn config.wsgi:application"
+    startCommand: "./start.sh"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0 
       - key: SECRET_KEY
         generateValue: true
       - key: WEB_CONCURRENCY
-        value: 4
+        value: 2
+      - key: REDIS_URL
+        fromService: 
+          type: redis
+          name: commerce-redis
+          property: internalConnectionUrl
       - key: DJANGO_SETTINGS_MODULE
         value: config.settings.production
     linkedDatabase: commerce-db
