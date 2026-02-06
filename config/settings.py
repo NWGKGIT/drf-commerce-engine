@@ -1,7 +1,6 @@
 from pathlib import Path
 import os
 import environ
-import dj_database_url
 from datetime import timedelta
 from celery.schedules import crontab
 
@@ -91,11 +90,12 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # Configured to use DATABASE_URL if present (Render), otherwise falls back to local vars
 DATABASES = {
-    "default": dj_database_url.config(
+    "default": env.db(
+        "DATABASE_URL",
         default=f"postgres://{env('POSTGRES_USER', default='db_user')}:{env('POSTGRES_PASSWORD', default='default_password')}@{env('POSTGRES_HOST', default='localhost')}:{env('POSTGRES_PORT', default='5432')}/{env('POSTGRES_DB', default='db_table')}",
-        conn_max_age=600
     )
 }
+DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=600)
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
