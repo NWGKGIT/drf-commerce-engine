@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
 from .models import Category, Product, ProductImage
 from apps.inventory.serializers import InventoryItemSerializer
 from django.db.models import Sum
@@ -22,9 +23,10 @@ class CategorySerializer(serializers.ModelSerializer):
             "subcategories",
         ]
 
-    def get_depth(self, obj):
+    def get_depth(self, obj) -> int:
         return self.context.get("depth", 0)
 
+    @extend_schema_field(serializers.ListField())
     def get_subcategories(self, obj):
         if hasattr(obj, "subcategories"):
             current_depth = self.context.get("depth", 0)
@@ -135,6 +137,6 @@ class ProductSerializer(serializers.ModelSerializer):
         validated_data.pop("initial_stock", None)
         return super().update(instance, validated_data)
 
-    def get_total_stock(self, obj):
+    def get_total_stock(self, obj) -> int:
         result = obj.inventory_items.aggregate(total=Sum("quantity"))
         return result["total"] or 0

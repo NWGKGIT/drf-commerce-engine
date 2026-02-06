@@ -24,7 +24,7 @@ class CartItemSerializer(serializers.ModelSerializer):
             "total_price",
         ]
 
-    def get_total_price(self, obj):
+    def get_total_price(self, obj) -> float:
         return obj.quantity * obj.product.price
 
     def validate(self, data):
@@ -78,7 +78,7 @@ class CartSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
-    def get_grand_total(self, obj):
+    def get_grand_total(self, obj) -> float:
         return (
             obj.items.aggregate(total=Sum(F("quantity") * F("product__price")))["total"]
             or 0

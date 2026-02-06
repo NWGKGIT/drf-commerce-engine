@@ -15,6 +15,7 @@ class WishlistViewSet(mixins.RetrieveModelMixin, GenericViewSet):
 class WishlistItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = WishlistItemSerializer
+    queryset = WishlistItem.objects.none() # Schema generation fallback
 
     def get_queryset(self):
         return WishlistItem.objects.filter(wishlist__user=self.request.user)

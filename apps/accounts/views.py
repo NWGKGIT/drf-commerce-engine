@@ -26,6 +26,7 @@ User = get_user_model()
 class AddressViewSet(viewsets.ModelViewSet):
     serializer_class = AddressSerializer
     permission_classes = [permissions.IsAuthenticated, IsEmailVerified]
+    queryset = Address.objects.none() # Schema generation fallback
 
     def get_queryset(self):
         # STRICT FILTER: Only return addresses belonging to the logged-in user

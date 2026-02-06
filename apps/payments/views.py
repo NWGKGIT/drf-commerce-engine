@@ -112,6 +112,7 @@ class ChapaWebhookView(APIView):
     permission_classes = []
     authentication_classes=[]
     @extend_schema(
+        request=None,
         responses={200: None},  # Tells Swagger it returns an empty success response
         description="Endpoint for Chapa payment webhooks",
     )

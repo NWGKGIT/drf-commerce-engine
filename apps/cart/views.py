@@ -24,6 +24,7 @@ class CartViewSet(viewsets.ViewSet):
 class CartItemViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = CartItemSerializer
+    queryset = CartItem.objects.none() # Schema generation fallback
 
     def get_queryset(self):
         return CartItem.objects.filter(

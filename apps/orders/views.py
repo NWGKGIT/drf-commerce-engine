@@ -14,6 +14,7 @@ class IsAdminOrOwner(permissions.BasePermission):
 class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsAdminOrOwner]
     serializer_class = OrderSerializer
+    queryset = Order.objects.none() # Schema generation fallback
     http_method_names = ["get", "post", "patch", "head", "options"]
     
     # Enable filtering and ordering

@@ -209,6 +209,10 @@ SPECTACULAR_SETTINGS = {
             }
         }
     },
+    "ENUM_NAME_OVERRIDES": {
+        "PaymentStatusEnum": "apps.payments.models.Payment.PaymentStatus",
+        "OrderStatusEnum": "apps.orders.models.OrderStatus",
+    },
 }
 
 # --- Celery ---
