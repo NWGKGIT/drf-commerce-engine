@@ -1,6 +1,8 @@
 from pathlib import Path
 import os
 import environ
+from datetime import timedelta
+from celery.schedules import crontab
 
 env = environ.Env()
 
@@ -42,6 +44,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "dj_rest_auth.registration",
     "drf_spectacular",
+    "django_erd_generator",
     "corsheaders",
 ]
 
@@ -165,9 +168,6 @@ REST_AUTH = {
 }
 
 
-# JWT CONFIG
-from datetime import timedelta
-
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),  
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
@@ -192,7 +192,7 @@ SPECTACULAR_SETTINGS = {
     'SCHEMA_PATH_PREFIX': r'/api/',
     "SECURITY":[
         {"jwtAuth": []},
-    ],
+    ], 
     "APPEND_COMPONENTS": {
         "securitySchemes": {
             "jwtAuth": {
@@ -202,6 +202,10 @@ SPECTACULAR_SETTINGS = {
                 "description": "Token-based authentication with JWT",
             }
         }
+    },
+    "ENUM_NAME_OVERRIDES": {
+        "PaymentStatusEnum": "apps.payments.models.Payment.PaymentStatus",
+        "OrderStatusEnum": "apps.orders.models.OrderStatus",
     },
 }
 
@@ -213,7 +217,6 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 
-from celery.schedules import crontab
 CELERY_BEAT_SCHEDULE = {
     "clear-expired-reservations-every-5-minutes": {
         "task": "inventory.tasks.clear_expired_reservations",
