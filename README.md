@@ -2,7 +2,7 @@
 
 A production-ready E-Commerce backend API built with Python, Django, and Django REST Framework. This project is designed for scalability and performance, featuring a robust architecture for managing products, orders, payments, and users.
 
-![Swagger UI](swagger.png)
+![Swagger UI](docs/media/swagger.png)
 
 ## 🚀 Features
 
@@ -108,7 +108,7 @@ python manage.py migrate
 python manage.py createsuperuser
 
 # (Optional) Seed Database with Dummy Data
-python manage.py seed_db --flush
+python scripts/verify_seed.py
 ```
 
 ### 5. Running the Application
@@ -137,8 +137,8 @@ celery -A config beat -l info
 This project is pre-configured for deployment on [Render](https://render.com/).
 
 ### 1. Configuration
--   **Build Command:** `bash build.sh`
--   **Start Command:** `bash start.sh`
+-   **Build Command:** `bash scripts/build.sh`
+-   **Start Command:** `bash scripts/start.sh`
 
 ### 2. Environment Variables
 Add the variables from your `.env` file to the Render dashboard.
@@ -147,11 +147,11 @@ Add the variables from your `.env` file to the Render dashboard.
 ### 3. Seeding the Database (Crucial Step!)
 Render's free tier does not allow shell access (SSH) to run commands manually. To seed your database initially:
 
-1.  Open `build.sh` locally.
+1.  Open `scripts/build.sh` locally.
 2.  **Uncomment** the line: `python manage.py seed_db --flush`.
 3.  Commit and push: `git commit -am "Enable seeding for initial deploy" && git push`.
 4.  Wait for the deployment to finish. The database will be seeded during the build process.
-5.  **Re-comment** the line in `build.sh`.
+5.  **Re-comment** the line in `scripts/build.sh`.
 6.  Commit and push again: `git commit -am "Disable seeding after initial deploy" && git push`.
 
 > **Warning:** Leaving the seeding command uncommented will reset your database on every deployment!
@@ -172,9 +172,9 @@ The project follows a domain-driven design approach within Django's app structur
 
 The database is designed to handle complex e-commerce relationships efficiently.
 
-![Entity Relationship Diagram](myerd.png)
+![Entity Relationship Diagram](docs/media/myerd.png)
 
-> **Note:** You can view the [Mermaid source code](my_erd.md) or visualize it using [Mermaid Live Editor](https://mermaid.live/).
+> **Note:** You can view the [Mermaid source code](docs/ERD.md) or visualize it using [Mermaid Live Editor](https://mermaid.live/).
 
 ### API Documentation
 Once the server is running, the API documentation is available at:
