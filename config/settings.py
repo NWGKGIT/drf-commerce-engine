@@ -95,7 +95,7 @@ DATABASES = {
         conn_health_checks=True,
     )
 }
-
+REDIS_URL = os.environ.get('REDIS_URL')
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -224,7 +224,6 @@ SPECTACULAR_SETTINGS = {
 }
 
 # --- Celery ---
-REDIS_URL = env("REDIS_URL", default="redis://localhost:6379/1")
 
 CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
