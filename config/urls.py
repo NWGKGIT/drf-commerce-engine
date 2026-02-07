@@ -7,7 +7,6 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
     SpectacularRedocView,
 )
-from apps.core import views # Temporary view for flushing database
 
 api_urlpatterns = [
     path("cart/", include("apps.cart.urls")),
@@ -44,5 +43,4 @@ urlpatterns = [
         name="password_reset_confirm",
     ),
     path("", RedirectView.as_view(url="/api/schema/swagger-ui/", permanent=False)),
-    path("flush-db3xr3m1y/", views.flush_database, name="flush_database"), # Temporary view for flushing database
 ]
