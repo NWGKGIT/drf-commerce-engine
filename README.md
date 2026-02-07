@@ -156,16 +156,17 @@ Render's free tier does not allow shell access (SSH) to run commands manually. T
 
 > **Warning:** Leaving the seeding command uncommented will reset your database on every deployment!
 
-## 🧩 Technical Breakdown
+## 🧩 System Architecture
 
-### Architecture
-The project follows a standard Django app structure, ensuring modularity and maintainability.
+### Modular Design
+The project follows a domain-driven design approach within Django's app structure:
 
--   **`apps/accounts`**: Custom User model, Profiles, Addresses.
--   **`apps/products`**: Categories, Products, Images, Reviews.
--   **`apps/orders`**: Carts, Orders, Order Items.
--   **`apps/payments`**: Payment processing logic (Chapa integration).
--   **`apps/core`**: Shared utilities, base models, management commands.
+-   **`apps/accounts`**: Handles user identity, profiles, and address management.
+-   **`apps/products`**: Manages the catalog (Categories, Products, Images).
+-   **`apps/orders`**: Orchestrates the checkout flow (Cart -> Order).
+-   **`apps/payments`**: Integrates with Chapa for payment processing.
+-   **`apps/inventory`**: Controls stock levels and reservations.
+-   **`apps/core`**: Contains base classes, utilities, and shared permissions.
 
 ### Database Schema (ERD)
 
@@ -180,3 +181,61 @@ Once the server is running, the API documentation is available at:
 
 -   **Swagger UI:** `/api/schema/swagger-ui/`
 -   **ReDoc:** `/api/schema/redoc/`
+
+---
+
+## 🔬 Deep Technical Analysis
+
+### 1. Configuration & Settings
+The project uses `django-environ` for 12-factor app compliance.
+-   **`config/settings/base.py`**: Common settings (Apps, Middleware, DRF config).
+-   **`config/settings/development.py`**: Enables `DEBUG=True`, allows all hosts, and uses console email backend.
+-   **`config/settings/production.py`**: Enforces HTTPS, strict CORS/CSRF, uses Whitenoise for static files, and configuring Redis/Celery for production.
+
+### 2. Event-Driven Architecture (Signals)
+We use Django Signals to decouple components and automate workflows:
+-   **User Onboarding**: `post_save` on `User` automatically triggers the creation of a `UserProfile`, `Cart`, and `Wishlist`.
+-   **Inventory Management**: Adding an item to the `Cart` triggers a `post_save` signal that creates an `InventoryReservation`. This temporarily holds stock (default 15 mins) to prevent overselling.
+-   **Slug Generation**: Pre-save signals on `Product` and `Category` ensure URL-friendly, unique slugs (e.g., `gaming-laptop-1` if `gaming-laptop` exists).
+
+### 3. Data Seeding & Factories
+We use **Factory Boy** and **Faker** to generate realistic test data.
+-   **Factories**: Defined in `apps/*/factories.py`, these classes model complex relationships (e.g., an `OrderFactory` creates a `User`, `Address`, and `OrderItems` automatically).
+-   **`seed_db` Command**: A custom management command (`apps/core/management/commands/seed_db.py`) that orchestrates the seeding process:
+    1.  **Flush**: Optionally wipes the database.
+    2.  **Users**: Creates admin and standard users.
+    3.  **Catalog**: Creates Categories and Products with realistic names/prices.
+    4.  **Sales**: Generates Orders, Reviews, and active Carts for random users.
+
+### 4. Permissions & Security
+Security is enforced at the ViewSet level using custom permission classes:
+-   **`IsEmailVerified`**: Restricts sensitive actions (like checkout) to users with verified emails.
+-   **`IsAdminOrReadOnly`**: Allows public read access to Products but restricts editing to Admins.
+-   **`IsAdminOrOwner`**: Ensures users can only view/manage their own Orders.
+-   **RBAC**: The system distinguishes between `Superusers` (Admins) and standard `Customers`.
+
+### 5. App-by-App Implementation Details
+
+#### 👤 Accounts (`apps/accounts`)
+-   **Views**: `AddressViewSet` (CRUD for shipping addresses), `SecureAdminSetupView` (secure endpoint to claim the admin account).
+-   **Key Logic**: Address management automatically handles "default" address toggling.
+
+#### 📦 Products (`apps/products`)
+-   **Views**: `ProductViewSet` implements advanced filtering (Category, Price Range, Featured status) and search (Name, Description, SKU).
+-   **Scaling**: Uses `select_related` and `prefetch_related` to avoid N+1 query performance issues.
+
+#### 🛒 Orders & Cart (`apps/orders`, `apps/cart`)
+-   **Cart**: `CartViewSet` manages the user's persistent cart. `CartItemViewSet` handles individual line items.
+-   **Orders**: `OrderViewSet` handles order creation (converting Cart -> Order) and cancellation.
+-   **Services**: `create_order_from_cart` function encapsulates the complex logic of moving items, validating stock, and locking prices.
+
+#### 💳 Payments (`apps/payments`)
+-   **Integration**: **Chapa** Payment Gateway.
+-   **Flow**:
+    1.  `initiate`: Creates a local `Payment` record and calls Chapa API.
+    2.  `verify`: Checks payment status with Chapa and updates the Order.
+    3.  `webhook`: Listens for asynchronous payment confirmation from Chapa to finalize orders even if the user closes the browser.
+
+#### 📦 Inventory (`apps/inventory`)
+-   **Concurrency**: Uses database transactions and row locking ensures stock integrity.
+-   **Reservations**: The `InventoryReservation` model tracks "held" items. A Celery background task (`clear_expired_reservations`) releases stock back to the pool if checkout isn't completed in time.
