@@ -8,5 +8,5 @@ python manage.py collectstatic --no-input
 
 python manage.py migrate
 
-# First and one use only
-python manage.py seed_db --flush
+# First and one use only (Uncomment this line for the initial deployment to seed the DB, then comment it out again!)
+# python manage.py seed_db --flush

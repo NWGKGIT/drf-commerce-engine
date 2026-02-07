@@ -1,148 +1,180 @@
 # DRF Commerce Engine
 
-A robust, scalable E-Commerce backend API built with Python, Django, and Django REST Framework. This project provides a complete solution for managing an online store, including product management, shopping carts, orders, payments, user authentication, and inventory control.
+A production-ready E-Commerce backend API built with Python, Django, and Django REST Framework. This project is designed for scalability and performance, featuring a robust architecture for managing products, orders, payments, and users.
+
+![Swagger UI](swagger.png)
 
 ## 🚀 Features
 
--   **User Authentication & Accounts**:
-    -   Secure registration and login using JWT (JSON Web Tokens).
-    -   Email verification and password reset flows.
-    -   Custom user model supporting extended profiles.
--   **Product Catalog**:
-    -   Comprehensive product management with categories and details.
-    -   Efficient filtering, searching, and sorting.
--   **Shopping Cart**:
-    -   Persistent cart functionality for authenticated users.
-    -   Add, update, and remove items dynamically.
--   **Order Management**:
-    -   Order placement and tracking.
-    -   Order status updates and history.
--   **Inventory Management**:
-    -   Real-time stock tracking.
-    -   Reservation system to prevent overselling during checkout.
-    -   Background tasks to clear expired reservations.
--   **Payments**:
-    -   Integration with Chapa payment gateway.
-    -   Secure payment processing and verification.
--   **Reviews & Wishlists**:
+-   **Authentication & Security**:
+    -   JWT-based authentication (Access & Refresh tokens).
+    -   Secure password handling and email verification.
+    -   Role-based access control (Admin, Staff, Customer).
+-   **Product Management**:
+    -   Hierarchical categories.
+    -   Advanced filtering, searching, and sorting.
+    -   Inventory tracking with reservation system to prevent overselling.
+-   **Shopping Experience**:
+    -   Persistent shopping cart.
+    -   Wishlist functionality.
     -   Product reviews and ratings.
-    -   User wishlists for saving favorite items.
--   **API Documentation**:
-    -   Auto-generated Interactive API docs via Swagger UI and ReDoc.
+-   **Order Processing**:
+    -   Complex order lifecycle management.
+    -   Address management for shipping/billing.
+-   **Payments**:
+    -   Integrated with **Chapa** payment gateway.
+    -   Secure webhook handling for payment verification.
+-   **Performance**:
+    -   Redis validation for caching and session storage.
+    -   Celery for asynchronous tasks (e.g., clearing expired cart reservations).
+    -   Optimized database queries (N+1 problem prevention).
+-   **Documentation**:
+    -   Auto-generated Interactive API docs (Swagger & ReDoc).
 
 ## 🛠 Tech Stack
 
--   **Backend Framework**: [Django](https://www.djangoproject.com/) & [Django REST Framework](https://www.django-rest-framework.org/)
+-   **Backend**: Django 5, Django REST Framework
 -   **Database**: PostgreSQL
 -   **Caching & Broker**: Redis
--   **Async Tasks**: Celery & Celery Beat
+-   **Async Tasks**: Celery, Celery Beat
+-   **WSGI Server**: Gunicorn
 -   **Documentation**: drf-spectacular (OpenAPI 3.0)
--   **Deployment**: Ready for Render (includes `build.sh` and `render.yaml`)
+-   **Deployment**: Render (configurations included)
 
 ## ⚙️ Prerequisites
 
-Ensure you have the following installed locally:
-
+Before you begin, ensure you have the following installed:
 -   [Python 3.10+](https://www.python.org/)
 -   [PostgreSQL](https://www.postgresql.org/)
--   [Redis](https://redis.io/) (for caching and background tasks)
+-   [Redis](https://redis.io/) (Required for Celery tasks)
 
-## 📥 Installation
+## 📥 Local Setup Guide
 
-1.  **Clone the repository**:
-    ```bash
-    git clone <repository-url>
-    cd drf-commerce-engine
-    ```
+### 1. Clone User & Environment
 
-2.  **Create and activate a virtual environment**:
-    ```bash
-    # Windows
-    python -m venv venv
-    .\venv\Scripts\activate
-
-    # Linux/MacOS
-    python3 -m venv venv
-    source venv/bin/activate
-    ```
-
-3.  **Install dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-4.  **Environment Configuration**:
-    Create a `.env` file in the root directory (based on `.env.example` if available) and configure your secrets:
-    ```env
-    # Security
-    SECRET_KEY=your-super-secret-key-here
-    DEBUG=True
-    ALLOWED_HOSTS=localhost,127.0.0.1
-
-    # Database
-    POSTGRES_DB=commerce_db
-    POSTGRES_USER=postgres
-    POSTGRES_PASSWORD=yourpassword
-    POSTGRES_HOST=localhost
-    POSTGRES_PORT=5432
-
-    # Redis
-    CELERY_BROKER_URL=redis://localhost:6379/1
-    CELERY_RESULT_BACKEND=redis://localhost:6379/1
-    REDIS_URL=redis://localhost:6379/2
-    
-    # Payments (Chapa)
-    CHAPA_SECRET_KEY=your-chapa-secret-key
-    CHAPA_WEBHOOK_SECRET=your-webhook-secret
-    ```
-
-5.  **Apply Database Migrations**:
-    ```bash
-    python manage.py migrate
-    ```
-
-6.  **Create a Superuser**:
-    ```bash
-    python manage.py createsuperuser
-    ```
-
-7.  **Run the Development Server**:
-    ```bash
-    python manage.py runserver
-    ```
-
-## 🏃‍♂️ Background Tasks
-
-This project uses Celery for background tasks (e.g., clearing expired inventory reservations).
-
-To run the Celery worker and beat scheduler locally:
-
-**Worker:**
 ```bash
-celery -A config worker -l info --pool=solo
-```
-*(Note: `--pool=solo` is often required on Windows)*
+git clone <repository-url>
+cd drf-commerce-engine
 
-**Beat Scheduler:**
+# Create Virtual Environment
+python -m venv venv
+
+# Activate (Windows)
+.\venv\Scripts\activate
+
+# Activate (Linux/Mac)
+source venv/bin/activate
+```
+
+### 2. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Environment Configuration
+
+Create a `.env` file in the root directory. You can use `.env.example` as a template.
+
+```env
+# Security
+SECRET_KEY=your-super-secret-key
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Database
+POSTGRES_DB=commerce_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_db_password
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+
+# Redis
+CELERY_BROKER_URL=redis://localhost:6379/1
+REDIS_URL=redis://localhost:6379/2
+
+# Payments (Chapa)
+CHAPA_SECRET_KEY=your-chapa-secret-key
+CHAPA_WEBHOOK_SECRET=your-webhook-secret
+```
+
+### 4. Database Setup
+
+```bash
+# Apply migrations
+python manage.py migrate
+
+# Create Superuser (Admin)
+python manage.py createsuperuser
+
+# (Optional) Seed Database with Dummy Data
+python manage.py seed_db --flush
+```
+
+### 5. Running the Application
+
+**Start Django Server:**
+```bash
+python manage.py runserver
+```
+
+**Start Celery Worker (for background tasks):**
+```bash
+# Windows
+celery -A config worker -l info --pool=solo
+
+# Linux/Mac
+celery -A config worker -l info
+```
+
+**Start Celery Beat (for scheduled tasks):**
 ```bash
 celery -A config beat -l info
 ```
 
-## 📖 API Documentation
+## 🚀 Deployment on Render
 
-The API comes with built-in interactive documentation. Once the server is running, visit:
+This project is pre-configured for deployment on [Render](https://render.com/).
 
--   **Swagger UI**: [http://localhost:8000/api/schema/swagger-ui/](http://localhost:8000/api/schema/swagger-ui/)
--   **ReDoc**: [http://localhost:8000/api/schema/redoc/](http://localhost:8000/api/schema/redoc/)
+### 1. Configuration
+-   **Build Command:** `bash build.sh`
+-   **Start Command:** `bash start.sh`
 
-## 🚀 Deployment
+### 2. Environment Variables
+Add the variables from your `.env` file to the Render dashboard.
+**Important:** Set `PYTHON_VERSION` to `3.11.6` (or your local version).
 
-This project is configured for easy deployment on [Render](https://render.com/).
+### 3. Seeding the Database (Crucial Step!)
+Render's free tier does not allow shell access (SSH) to run commands manually. To seed your database initially:
 
-1.  Push your code to a generic Git repository.
-2.  Connect your repository to Render.
-3.  Use the `render.yaml` Blueprint or manually configure a **Web Service**.
-4.  Set the required environment variables in the Render dashboard.
-5.  Render will automatically build and start the application using `build.sh`.
+1.  Open `build.sh` locally.
+2.  **Uncomment** the line: `python manage.py seed_db --flush`.
+3.  Commit and push: `git commit -am "Enable seeding for initial deploy" && git push`.
+4.  Wait for the deployment to finish. The database will be seeded during the build process.
+5.  **Re-comment** the line in `build.sh`.
+6.  Commit and push again: `git commit -am "Disable seeding after initial deploy" && git push`.
 
-See `walkthrough.md` for a more detailed deployment guide.
+> **Warning:** Leaving the seeding command uncommented will reset your database on every deployment!
+
+## 🧩 Technical Breakdown
+
+### Architecture
+The project follows a standard Django app structure, ensuring modularity and maintainability.
+
+-   **`apps/accounts`**: Custom User model, Profiles, Addresses.
+-   **`apps/products`**: Categories, Products, Images, Reviews.
+-   **`apps/orders`**: Carts, Orders, Order Items.
+-   **`apps/payments`**: Payment processing logic (Chapa integration).
+-   **`apps/core`**: Shared utilities, base models, management commands.
+
+### Database Schema (ERD)
+
+The database is designed to handle complex e-commerce relationships efficiently.
+
+![Entity Relationship Diagram](myerd.png)
+
+### API Documentation
+Once the server is running, the API documentation is available at:
+
+-   **Swagger UI:** `/api/schema/swagger-ui/`
+-   **ReDoc:** `/api/schema/redoc/`
