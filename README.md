@@ -173,6 +173,8 @@ The database is designed to handle complex e-commerce relationships efficiently.
 
 ![Entity Relationship Diagram](myerd.png)
 
+> **Note:** You can view the [Mermaid source code](my_erd.md) or visualize it using [Mermaid Live Editor](https://mermaid.live/).
+
 ### API Documentation
 Once the server is running, the API documentation is available at:
 
