@@ -4,6 +4,14 @@ A production-ready E-Commerce backend API built with Python, Django, and Django 
 
 ![Swagger UI](docs/media/swagger.png)
 
+> [!IMPORTANT]
+> **Presenting my DRF E-Commerce Engine**
+> Please keep in mind that a non-admin user is only allowed to **READ** (i.e., GET Requests only).
+> To enable Write/Update/Patch operations, you must claim the admin account by sending a **POST** request to `/api/accounts/admin-setup/` with a secret token.
+>
+> *Note: I will not be sharing the secret token for this specific Render deployment. To test full administrative privileges, please deploy the project yourself and configure your own token in the `.env` file.*
+
+
 ## 🚀 Features
 
 -   **Authentication & Security**:
