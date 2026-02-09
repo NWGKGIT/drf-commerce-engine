@@ -55,7 +55,29 @@ Before you begin, ensure you have the following installed:
 -   [PostgreSQL](https://www.postgresql.org/)
 -   [Redis](https://redis.io/) (Required for Celery tasks)
 
-## 📥 Local Setup Guide
+## 🐳 Docker Setup (Recommended)
+
+Run the entire application (Django, PostgreSQL, Redis, Celery) with a single command.
+
+### 1. Build and Start
+```bash
+docker-compose up --build
+```
+- Access the API at `http://localhost:8000/api/`
+- API Documentation: `http://localhost:8000/api/schema/swagger-ui/`
+
+### 2. Stop Containers
+```bash
+docker-compose down
+```
+
+### 3. Run Commands inside Docker
+To run management commands (like creating a superuser):
+```bash
+docker-compose exec web python manage.py createsuperuser
+```
+
+## 📥 Local Setup Guide (Manual)
 
 ### 1. Clone User & Environment
 

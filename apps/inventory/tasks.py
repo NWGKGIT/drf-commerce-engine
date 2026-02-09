@@ -5,7 +5,7 @@ from datetime import timedelta
 import logging
 
 from .models import InventoryReservation, InventoryItem
-from orders.models import Order, OrderStatus
+from apps.orders.models import Order, OrderStatus
 
 logger = logging.getLogger(__name__)
 
