@@ -56,3 +56,6 @@ CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
+
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend" #temporary fix to 500 error post_save signal
