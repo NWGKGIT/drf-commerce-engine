@@ -119,21 +119,22 @@ def cancel_order(order, user_initiated=False):
         raise ValidationError("Order is already processing. Contact support to cancel.")
 
     # Restore Stock
-    # Iterate over items and add quantity back to inventory
+    # Iterate over items and add quantity back to inventory.
+    # Any failure here will propagate and roll back the full cancellation
+    # (safe because cancel_order is wrapped in @transaction.atomic).
     for item in order.items.all():
-        try:
-            restore_stock(product=item.product, quantity=item.quantity)
-        except Exception as e:
-            pass
+        restore_stock(product=item.product, quantity=item.quantity)
 
     # Update Order Status
     order.status = OrderStatus.CANCELLED
     order.save()
 
-    # Cancel Pending Payments
-    # Payment.objects.filter(order=order, status=Payment.PaymentStatus.PENDING).update(
-    #     status=Payment.PaymentStatus.CANCELLED
-    # )
+    # Cancel any pending payments tied to this order so a user cannot
+    # trigger a Chapa payment on an already-cancelled order via a stale link.
+    from apps.payments.models import Payment
+    Payment.objects.filter(
+        order=order, status=Payment.PaymentStatus.PENDING
+    ).update(status=Payment.PaymentStatus.CANCELLED)
 
     order_cancelled_signal.send(sender=order.__class__, order=order)
     return order
