@@ -219,11 +219,11 @@ CELERY_TIMEZONE = TIME_ZONE
 
 CELERY_BEAT_SCHEDULE = {
     "clear-expired-reservations-every-5-minutes": {
-        "task": "inventory.tasks.clear_expired_reservations",
+        "task": "apps.inventory.tasks.clear_expired_reservations",
         "schedule": crontab(minute="*/5"),
     },
     "cancel-unpaid-orders-every-10-mins": {
-        "task": "inventory.tasks.cancel_unpaid_orders",
+        "task": "apps.inventory.tasks.cancel_unpaid_orders",
         "schedule": 600.0,
     },
 }
