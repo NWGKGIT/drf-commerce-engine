@@ -64,7 +64,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_verified(self):
-        return self.email_verified
+        """
+        Returns True if the user has a verified email address in allauth's
+        EmailAddress table. This is the authoritative source of email
+        verification state — there is no email_verified field on the User model.
+        """
+        from allauth.account.models import EmailAddress
+        return EmailAddress.objects.filter(user=self, verified=True).exists()
 
 
 class UserProfile(models.Model):
