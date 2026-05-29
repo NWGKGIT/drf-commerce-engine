@@ -9,7 +9,7 @@ class Wishlist(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Wishlist for {self.user.email or self.user.phone_number}"
+        return f"Wishlist for {self.user.email}"
 
 class WishlistItem(models.Model):
     wishlist = models.ForeignKey(Wishlist, on_delete=models.CASCADE, related_name='items')
