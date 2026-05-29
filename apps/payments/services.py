@@ -65,20 +65,21 @@ class ChapaService:
     @staticmethod
     def verify_webhook_signature(request):
         """
-        Verify the HMAC SHA256 signature from Chapa
+        Verify the HMAC SHA256 signature from Chapa.
         """
         secret = settings.CHAPA_WEBHOOK_SECRET
-        if not secret:
-            return False 
-            
+
+        if not secret or secret == "placeholder-for-build":
+            return False
+
         signature = request.headers.get('Chapa-Signature') or request.headers.get('x-chapa-signature')
         if not signature:
             return False
 
         body = request.body
         expected_signature = hmac.new(
-            secret.encode('utf-8'), 
-            body, 
+            secret.encode('utf-8'),
+            body,
             hashlib.sha256
         ).hexdigest()
 
@@ -102,9 +103,6 @@ def finalize_order(payment_reference, gateway_response=None):
         return True 
     order = payment.order
     if payment.status == Payment.PaymentStatus.CANCELLED or order.status == OrderStatus.CANCELLED:
-        # LOGIC CHOICE: If they paid for a cancelled order, you mark the payment SUCCESS
-        # for accounting, but DO NOT change the Order status to PROCESSING.
-        # You would instead flag this for manual refund.
         payment.status = Payment.PaymentStatus.SUCCESS
         if gateway_response:
             payment.raw_response = gateway_response
@@ -118,8 +116,9 @@ def finalize_order(payment_reference, gateway_response=None):
         payment.raw_response = gateway_response
     payment.save()
 
+    # Transition order: PENDING_PAYMENT / PAYMENT_FAILED → PROCESSING
     if order.status in [OrderStatus.PENDING_PAYMENT, OrderStatus.PAYMENT_FAILED]:
-        order.status = OrderStatus.COMPLETED
+        order.status = OrderStatus.PROCESSING
         order.save()
-    
+
     return True

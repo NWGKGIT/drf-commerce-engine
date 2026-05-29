@@ -25,7 +25,8 @@ class PaymentViewSet(viewsets.GenericViewSet):
 
         order_id = serializer.validated_data["order_id"]
         return_url = serializer.validated_data["return_url"]
-        order = Order.objects.get(id=order_id)
+
+        order = get_object_or_404(Order, id=order_id, user=request.user)
 
         # Create Local Payment Record
         payment = Payment.objects.create(
@@ -145,14 +146,25 @@ class ChapaWebhookView(APIView):
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     def get(self, request):
         """
-        Handles the user redirecting back to the site.
+        Handles the user being redirected back from Chapa after checkout.
+
+        We do NOT finalize the order here. The ?status=success query
+        param is set by the redirect URL and is entirely client-controlled 
+        any user can craft this URL. Real order finalization happens via:
+          1. The server-to-server webhook POST (above), or
+          2. The frontend calling GET /api/payments/verify/?tx_ref=...
         """
         tx_ref = request.query_params.get("trx_ref") or request.query_params.get("tx_ref")
-        status = request.query_params.get("status")
+        payment_status = request.query_params.get("status")
 
-        if status == "success" and tx_ref:
-            # Sync the order immediately so the user sees "Completed" on their screen
-            finalize_order(tx_ref)
-            return HttpResponse(f"<h1>Payment Successful!</h1><p>Order {tx_ref} is being processed.</p>")
-        
-        return HttpResponse("<h1>Payment Pending</h1><p>We are verifying your payment.</p>")
+        if payment_status == "success" and tx_ref:
+            return HttpResponse(
+                f"<h1>Payment Received!</h1>"
+                f"<p>Thank you. Your payment is being verified.</p>"
+                f"<p>Reference: {tx_ref}</p>"
+            )
+
+        return HttpResponse(
+            "<h1>Payment Pending</h1>"
+            "<p>We are verifying your payment. This may take a moment.</p>"
+        )
