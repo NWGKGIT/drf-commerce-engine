@@ -15,7 +15,7 @@ services:
     startCommand: "./scripts/start.sh"
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.0 
+        value: 3.11.13
       - key: SECRET_KEY
         generateValue: true
       - key: WEB_CONCURRENCY
@@ -26,5 +26,5 @@ services:
           name: commerce-redis
           property: internalConnectionUrl
       - key: DJANGO_SETTINGS_MODULE
-        value: config.settings
+        value: config.settings.production
     linkedDatabase: commerce-db

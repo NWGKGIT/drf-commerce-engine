@@ -1,12 +1,15 @@
 import uuid
-from django.db import transaction
-from django.core.exceptions import ValidationError
+from datetime import timedelta
 
-from apps.orders.models import Order, OrderItem, OrderStatus
-from apps.cart.models import Cart
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.utils import timezone
+
 from apps.accounts.models import Address
-from apps.inventory.services import deduct_stock, restore_stock
+from apps.cart.models import Cart
 from apps.inventory.models import InventoryReservation
+from apps.inventory.services import restore_stock
+from apps.orders.models import Order, OrderItem, OrderStatus
 
 # from apps.payments.models import Payment
 from .signals import order_cancelled_signal
@@ -23,8 +26,8 @@ def create_order_from_cart(user, address_id=None):
     1. Validates Cart
     2. Validates/Selects Address
     3. Creates Order & OrderItems
-    4. Deducts Physical Stock (Inventory)
-    5. Clears Cart & Reservations
+    4. Moves active Cart reservations to the pending Order
+    5. Clears Cart items
     """
 
     cart = Cart.objects.filter(user=user).prefetch_related("items__product").first()
@@ -60,17 +63,21 @@ def create_order_from_cart(user, address_id=None):
         status="pending_payment",  # Enum value
     )
 
-    # Process Items & Deduct Stock
+    # Process Items. Physical stock is deducted after payment succeeds.
     order_items = []
 
     for item in cart_items:
-        # DEDUCT STOCK (The Service Call)
-        # This will raise ValueError if stock is insufficient
-        # Since we are in @transaction.atomic, the whole order rolls back if this fails
-        try:
-            deduct_stock(product=item.product, quantity=item.quantity)
-        except ValueError as e:
-            raise ValidationError(str(e))
+        active_reservation = InventoryReservation.objects.filter(
+            cart=cart,
+            product=item.product,
+            quantity__gte=item.quantity,
+            expires_at__gt=timezone.now(),
+        ).first()
+
+        if not active_reservation:
+            raise ValidationError(
+                f"Reserved stock for {item.product.name} has expired or is insufficient."
+            )
 
         # Create Order Item
         order_items.append(
@@ -87,7 +94,18 @@ def create_order_from_cart(user, address_id=None):
     OrderItem.objects.bulk_create(order_items)
 
     # Cleanup
-    # Explicitly delete reservations first (safer than relying on signals)
+    reservation_expires_at = timezone.now() + timedelta(minutes=30)
+    for item in cart_items:
+        InventoryReservation.objects.update_or_create(
+            order=order,
+            product=item.product,
+            defaults={
+                "cart": None,
+                "quantity": item.quantity,
+                "expires_at": reservation_expires_at,
+            },
+        )
+
     InventoryReservation.objects.filter(cart=cart).delete()
 
     # Delete cart items
@@ -118,16 +136,17 @@ def cancel_order(order, user_initiated=False):
     ]:
         raise ValidationError("Order is already processing. Contact support to cancel.")
 
-    # Restore Stock
-    # Iterate over items and add quantity back to inventory.
-    # Any failure here will propagate and roll back the full cancellation
-    # (safe because cancel_order is wrapped in @transaction.atomic).
-    for item in order.items.all():
-        restore_stock(product=item.product, quantity=item.quantity)
+    if order.stock_deducted:
+        # Restore stock only if successful payment finalization already deducted it.
+        for item in order.items.all():
+            restore_stock(product=item.product, quantity=item.quantity)
+        order.stock_deducted = False
+    else:
+        InventoryReservation.objects.filter(order=order).delete()
 
     # Update Order Status
     order.status = OrderStatus.CANCELLED
-    order.save()
+    order.save(update_fields=["status", "stock_deducted", "updated_at"])
 
     # Cancel any pending payments tied to this order so a user cannot
     # trigger a Chapa payment on an already-cancelled order via a stale link.

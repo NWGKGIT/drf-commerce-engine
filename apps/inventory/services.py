@@ -1,7 +1,9 @@
 # inventory/services.py
 from django.db import transaction
 from django.db.models import F, Sum
-from apps.inventory.models import InventoryItem
+
+from apps.inventory.models import InventoryItem, InventoryReservation
+
 
 @transaction.atomic
 def deduct_stock(product, quantity):
@@ -50,3 +52,27 @@ def restore_stock(product, quantity):
     else:
         # Fallback: If no inventory record exists at all, create one in a default location
         InventoryItem.objects.create(product=product, quantity=quantity)
+
+
+@transaction.atomic
+def deduct_order_stock(order):
+    if order.stock_deducted:
+        return False
+
+    reservations = list(
+        InventoryReservation.objects.select_for_update()
+        .filter(order=order)
+        .select_related("product")
+        .order_by("id")
+    )
+
+    if not reservations:
+        raise ValueError("No active inventory reservation exists for this order.")
+
+    for reservation in reservations:
+        deduct_stock(product=reservation.product, quantity=reservation.quantity)
+
+    InventoryReservation.objects.filter(id__in=[r.id for r in reservations]).delete()
+    order.stock_deducted = True
+    order.save(update_fields=["stock_deducted", "updated_at"])
+    return True

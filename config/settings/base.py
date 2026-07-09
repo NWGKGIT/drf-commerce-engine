@@ -1,7 +1,8 @@
-from pathlib import Path
 import os
-import environ
 from datetime import timedelta
+from pathlib import Path
+
+import environ
 from celery.schedules import crontab
 
 env = environ.Env()
@@ -15,7 +16,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # SECURITY: Keep secret key here or override in prod
 SECRET_KEY = env("SECRET_KEY", default="dev-secret-key")
-INITIAL_ADMIN_TOKEN= env("INITIAL_ADMIN_TOKEN")
+INITIAL_ADMIN_TOKEN = env("INITIAL_ADMIN_TOKEN", default=None)
 # Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -109,6 +110,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -121,19 +130,13 @@ AUTHENTICATION_BACKENDS = [
 
 # --- AllAuth Settings ---
 SITE_ID = 1
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
-ACCOUNT_CONFIRM_EMAIL_ON_GET = True # Can override in Prod
-ACCOUNT_SIGNUP_FIELDS = {
-    "email*": {"required": True},
-    "first_name": {"required": False},
-    "last_name": {"required": False},
-}
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True  # Can override in Prod
+ACCOUNT_SIGNUP_FIELDS = ["email*", "first_name", "last_name"]
 LOGIN_URL = "/auth/login/"
 LOGIN_REDIRECT_URL = "/api/"
 ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = "/api/"
@@ -187,10 +190,17 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "The complete RESTful API for my E-commerce platform.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-    "APPS": ["apps.accounts", "apps.products", "apps.orders", "apps.inventory", "apps.reviews", "apps.wishlist"],
-    "COMPONENT_SPLIT_PATCH":True,
+    "APPS": [
+        "apps.accounts",
+        "apps.products",
+        "apps.orders",
+        "apps.inventory",
+        "apps.reviews",
+        "apps.wishlist",
+    ],
+    "COMPONENT_SPLIT_PATCH": True,
     'SCHEMA_PATH_PREFIX': r'/api/',
-    "SECURITY":[
+    "SECURITY": [
         {"jwtAuth": []},
     ], 
     "APPEND_COMPONENTS": {
@@ -244,3 +254,4 @@ SESSION_CACHE_ALIAS = "default"
 CHAPA_SECRET_KEY = env("CHAPA_SECRET_KEY", default=None)
 CHAPA_WEBHOOK_SECRET = env("CHAPA_WEBHOOK_SECRET", default="placeholder-for-build")
 BACKEND_URL = env("BACKEND_URL", default=None)
+CHAPA_REQUEST_TIMEOUT = env.float("CHAPA_REQUEST_TIMEOUT", default=10.0)

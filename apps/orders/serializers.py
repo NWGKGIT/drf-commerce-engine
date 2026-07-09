@@ -1,5 +1,7 @@
 from rest_framework import serializers
+
 from .models import Order, OrderItem
+
 
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,10 +15,17 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = [
             'id', 'order_number', 'status', 'total_amount', 
-            'currency', 'shipping_address_snapshot', 
+            'currency', 'shipping_address_snapshot', 'stock_deducted',
             'created_at', 'items'
         ]
-        read_only_fields = ['order_number', 'total_amount', 'status', 'currency', 'shipping_address_snapshot']
+        read_only_fields = [
+            'order_number',
+            'total_amount',
+            'status',
+            'currency',
+            'shipping_address_snapshot',
+            'stock_deducted',
+        ]
 
 class OrderStatusUpdateSerializer(serializers.ModelSerializer):
     """

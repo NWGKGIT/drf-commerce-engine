@@ -1,11 +1,14 @@
-from celery import shared_task
-from django.utils import timezone
-from django.db import transaction
-from datetime import timedelta
 import logging
+from datetime import timedelta
 
-from .models import InventoryReservation, InventoryItem
+from celery import shared_task
+from django.db import transaction
+from django.utils import timezone
+
 from apps.orders.models import Order, OrderStatus
+from apps.orders.services import cancel_order
+
+from .models import InventoryReservation
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +34,7 @@ def clear_expired_reservations():
 def cancel_unpaid_orders():
     """
     Cancels orders that have been 'Pending Payment' for too long 
-    and returns the stock to inventory.
-    (Handles items where Order was created -> Stock Deducted -> User abandoned payment)
+    and releases held reservations.
     """
     # Define timeout 
     timeout_threshold = timezone.now() - timedelta(minutes=30)
@@ -46,28 +48,7 @@ def cancel_unpaid_orders():
     count = 0
     for order in stale_orders:
         with transaction.atomic():
-            # Refill Inventory
-            for order_item in order.items.all():
-                # Add back to the first available inventory pile for this product
-                # In a complex warehouse, you might have a specific 'Returns' location
-                inventory_item = InventoryItem.objects.filter(
-                    product=order_item.product
-                ).first()
-                
-                if inventory_item:
-                    inventory_item.quantity += order_item.quantity
-                    inventory_item.save()
-                else:
-                    # If no inventory row exists (rare), create one or log warning
-                    InventoryItem.objects.create(
-                        product=order_item.product,
-                        quantity=order_item.quantity,
-                        location="Restocked from Cancelled Order"
-                    )
-
-            # Mark Order Cancelled
-            order.status = OrderStatus.CANCELLED
-            order.save()
+            cancel_order(order, user_initiated=False)
             count += 1
             
     if count > 0:

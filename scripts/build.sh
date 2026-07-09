@@ -2,11 +2,17 @@
 # Exit on error
 set -o errexit
 
-pip install -r requirements.txt
+export PATH="$HOME/.local/bin:$PATH"
 
-python manage.py collectstatic --no-input
+if ! command -v uv >/dev/null 2>&1; then
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+fi
 
-python manage.py migrate
+uv sync --locked --no-dev --no-install-project
+
+uv run python manage.py collectstatic --no-input
+
+uv run python manage.py migrate
 
 # First and one use only (Uncomment this line for the initial deployment to seed the DB, then comment it out again!)
-# python manage.py seed_db --flush
+# uv run python manage.py seed_db --flush

@@ -1,18 +1,23 @@
-from rest_framework import viewsets, status, permissions
-from rest_framework.views import APIView
+import logging
+
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from drf_spectacular.utils import extend_schema
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
-import logging
-from drf_spectacular.utils import extend_schema
+from rest_framework.views import APIView
+
+from apps.orders.models import Order, OrderStatus
+
 from .models import Payment
-from apps.orders.models import Order
-from .serializers import PaymentSerializer, PaymentInitiateSerializer
+from .serializers import PaymentInitiateSerializer, PaymentSerializer
 from .services import ChapaService, finalize_order
-from django.http import HttpResponse, HttpResponseRedirect 
+
 logger = logging.getLogger(__name__)
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+
 
 class PaymentViewSet(viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
@@ -27,6 +32,12 @@ class PaymentViewSet(viewsets.GenericViewSet):
         return_url = serializer.validated_data["return_url"]
 
         order = get_object_or_404(Order, id=order_id, user=request.user)
+
+        if order.status not in [OrderStatus.PENDING_PAYMENT, OrderStatus.PAYMENT_FAILED]:
+            return Response(
+                {"detail": "Payment can only be initiated for pending or failed orders."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Create Local Payment Record
         payment = Payment.objects.create(
@@ -70,8 +81,10 @@ class PaymentViewSet(viewsets.GenericViewSet):
                 data.get("status") == "success"
                 and data.get("data", {}).get("status") == "success"
             ):
-                finalize_order(tx_ref, gateway_response=data)
-                return Response({"status": "success"})
+                finalized = finalize_order(tx_ref, gateway_response=data)
+                if finalized:
+                    return Response({"status": "success"})
+                return Response({"status": "verification_failed"}, status=400)
             else:
                 return Response({"status": "pending_or_failed"})
         except Exception as e:
@@ -134,9 +147,13 @@ class ChapaWebhookView(APIView):
             if tx_ref:
                 # We double check with verify API to be absolutely sure before releasing goods
                 verification = ChapaService.verify_payment(tx_ref)
-                if verification.get("status") == "success":
-                    finalize_order(tx_ref, gateway_response=data)
-                    logger.info(f"WEBHOOK SUCCESS: Order {tx_ref} completed.")
+                if (
+                    verification.get("status") == "success"
+                    and verification.get("data", {}).get("status") == "success"
+                ):
+                    finalized = finalize_order(tx_ref, gateway_response=verification)
+                    if finalized:
+                        logger.info(f"WEBHOOK SUCCESS: Order {tx_ref} completed.")
                     return Response(status=status.HTTP_200_OK)
 
             return Response(status=status.HTTP_200_OK)  # Ack even if ignored

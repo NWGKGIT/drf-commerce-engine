@@ -1,12 +1,11 @@
-from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin,
 )
-from django.conf import settings
+from django.db import models
 from django.db.models import Q
-from django.utils import timezone
 
 
 class UserManager(BaseUserManager):
@@ -54,7 +53,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         constraints = [
             # Enforces that email must be present
             models.CheckConstraint(
-                check=Q(email__isnull=False),
+                condition=Q(email__isnull=False),
                 name="email_required",
             )
         ]

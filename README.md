@@ -53,7 +53,7 @@ A production-ready E-Commerce backend API built with Python, Django, and Django 
 ## ⚙️ Prerequisites
 
 Before you begin, ensure you have the following installed:
--   [Python 3.10+](https://www.python.org/)
+-   [uv](https://docs.astral.sh/uv/) for Python and dependency management
 -   [PostgreSQL](https://www.postgresql.org/)
 -   [Redis](https://redis.io/) (Required for Celery tasks)
 
@@ -76,7 +76,7 @@ docker-compose down
 ### 3. Run Commands inside Docker
 To run management commands (like creating a superuser):
 ```bash
-docker-compose exec web python manage.py createsuperuser
+docker-compose exec web uv run python manage.py createsuperuser
 ```
 
 ## 📥 Local Setup Guide (Manual)
@@ -87,20 +87,7 @@ docker-compose exec web python manage.py createsuperuser
 git clone <repository-url>
 cd drf-commerce-engine
 
-# Create Virtual Environment
-python -m venv venv
-
-# Activate (Windows)
-.\venv\Scripts\activate
-
-# Activate (Linux/Mac)
-source venv/bin/activate
-```
-
-### 2. Install Dependencies
-
-```bash
-pip install -r requirements.txt
+uv sync
 ```
 
 ### 3. Environment Configuration
@@ -133,34 +120,34 @@ CHAPA_WEBHOOK_SECRET=your-webhook-secret
 
 ```bash
 # Apply migrations
-python manage.py migrate
+uv run python manage.py migrate
 
 # Create Superuser (Admin)
-python manage.py createsuperuser
+uv run python manage.py createsuperuser
 
 # (Optional) Seed Database with Dummy Data
-python scripts/verify_seed.py
+uv run python scripts/verify_seed.py
 ```
 
 ### 5. Running the Application
 
 **Start Django Server:**
 ```bash
-python manage.py runserver
+uv run python manage.py runserver
 ```
 
 **Start Celery Worker (for background tasks):**
 ```bash
 # Windows
-celery -A config worker -l info --pool=solo
+uv run celery -A config worker -l info --pool=solo
 
 # Linux/Mac
-celery -A config worker -l info
+uv run celery -A config worker -l info
 ```
 
 **Start Celery Beat (for scheduled tasks):**
 ```bash
-celery -A config beat -l info
+uv run celery -A config beat -l info
 ```
 
 ## 🚀 Deployment on Render
@@ -173,13 +160,13 @@ This project is pre-configured for deployment on [Render](https://render.com/).
 
 ### 2. Environment Variables
 Add the variables from your `.env` file to the Render dashboard.
-**Important:** Set `PYTHON_VERSION` to `3.11.6` (or your local version).
+**Important:** Set `PYTHON_VERSION` to `3.11.13`.
 
 ### 3. Seeding the Database (Crucial Step!)
 Render's free tier does not allow shell access (SSH) to run commands manually. To seed your database initially:
 
 1.  Open `scripts/build.sh` locally.
-2.  **Uncomment** the line: `python manage.py seed_db --flush`.
+2.  **Uncomment** the line: `uv run python manage.py seed_db --flush`.
 3.  Commit and push: `git commit -am "Enable seeding for initial deploy" && git push`.
 4.  Wait for the deployment to finish. The database will be seeded during the build process.
 5.  **Re-comment** the line in `scripts/build.sh`.

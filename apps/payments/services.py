@@ -1,12 +1,15 @@
-import requests
-import json
 import hashlib
 import hmac
+import json
+
+import requests
 from django.conf import settings
 from django.db import transaction
-from django.utils import timezone
+
+from apps.inventory.services import deduct_order_stock
+from apps.orders.models import OrderStatus
+
 from .models import Payment
-from apps.orders.models import Order, OrderStatus
 
 CHAPA_API_URL = "https://api.chapa.co/v1"
 
@@ -24,6 +27,11 @@ class ChapaService:
         Sends the initialization request to Chapa.
         Returns the checkout_url.
         """
+        if not settings.CHAPA_SECRET_KEY:
+            raise ValueError("Chapa secret key is not configured.")
+        if not settings.BACKEND_URL:
+            raise ValueError("Backend URL is not configured.")
+
         payload = {
             "amount": str(payment_instance.amount),
             "currency": payment_instance.currency,
@@ -41,17 +49,26 @@ class ChapaService:
             response = requests.post(
                 f"{CHAPA_API_URL}/transaction/initialize",
                 headers=ChapaService.get_headers(),
-                json=payload
+                json=payload,
+                timeout=settings.CHAPA_REQUEST_TIMEOUT,
             )
+            response.raise_for_status()
             data = response.json()
             
-            if data['status'] == 'success':
-                return data['data']['checkout_url']
+            if data.get('status') == 'success':
+                checkout_url = data.get('data', {}).get('checkout_url')
+                if checkout_url:
+                    return checkout_url
+                raise ValueError("Chapa response did not include a checkout URL.")
             else:
                 raise ValueError(f"Chapa Error: {data.get('message', 'Unknown error')}")
                 
         except requests.exceptions.RequestException as e:
             raise ValueError(f"Connection Error: {str(e)}")
+        except ValueError:
+            raise
+        except (KeyError, TypeError, json.JSONDecodeError) as e:
+            raise ValueError(f"Invalid Chapa response: {str(e)}")
 
     @staticmethod
     def verify_payment(tx_ref):
@@ -59,8 +76,21 @@ class ChapaService:
         Manually verify transaction status with Chapa
         """
         url = f"{CHAPA_API_URL}/transaction/verify/{tx_ref}"
-        response = requests.get(url, headers=ChapaService.get_headers())
-        return response.json()
+        if not settings.CHAPA_SECRET_KEY:
+            raise ValueError("Chapa secret key is not configured.")
+
+        try:
+            response = requests.get(
+                url,
+                headers=ChapaService.get_headers(),
+                timeout=settings.CHAPA_REQUEST_TIMEOUT,
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            raise ValueError(f"Connection Error: {str(e)}")
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid Chapa response: {str(e)}")
 
     @staticmethod
     def verify_webhook_signature(request):
@@ -72,7 +102,9 @@ class ChapaService:
         if not secret or secret == "placeholder-for-build":
             return False
 
-        signature = request.headers.get('Chapa-Signature') or request.headers.get('x-chapa-signature')
+        signature = request.headers.get('Chapa-Signature') or request.headers.get(
+            'x-chapa-signature'
+        )
         if not signature:
             return False
 
@@ -103,11 +135,26 @@ def finalize_order(payment_reference, gateway_response=None):
         return True 
     order = payment.order
     if payment.status == Payment.PaymentStatus.CANCELLED or order.status == OrderStatus.CANCELLED:
-        payment.status = Payment.PaymentStatus.SUCCESS
         if gateway_response:
             payment.raw_response = gateway_response
         payment.save()
-        
+        return False
+
+    if order.status not in [OrderStatus.PENDING_PAYMENT, OrderStatus.PAYMENT_FAILED]:
+        if gateway_response:
+            payment.raw_response = gateway_response
+            payment.save(update_fields=["raw_response", "updated_at"])
+        return True
+
+    try:
+        deduct_order_stock(order)
+    except ValueError:
+        payment.status = Payment.PaymentStatus.FAILED
+        if gateway_response:
+            payment.raw_response = gateway_response
+        payment.save()
+        order.status = OrderStatus.PAYMENT_FAILED
+        order.save(update_fields=["status", "updated_at"])
         return False
 
     # Update Payment
@@ -116,9 +163,7 @@ def finalize_order(payment_reference, gateway_response=None):
         payment.raw_response = gateway_response
     payment.save()
 
-    # Transition order: PENDING_PAYMENT / PAYMENT_FAILED → PROCESSING
-    if order.status in [OrderStatus.PENDING_PAYMENT, OrderStatus.PAYMENT_FAILED]:
-        order.status = OrderStatus.PROCESSING
-        order.save()
+    order.status = OrderStatus.PROCESSING
+    order.save()
 
     return True

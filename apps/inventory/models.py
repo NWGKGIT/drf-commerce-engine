@@ -1,7 +1,9 @@
 from django.db import models
-from apps.products.models import Product
+
 from apps.cart.models import Cart
 from apps.orders.models import Order
+from apps.products.models import Product
+
 
 class InventoryItem(models.Model):
     product = models.ForeignKey(
@@ -39,14 +41,23 @@ class InventoryReservation(models.Model):
         verbose_name_plural = "Inventory Reservations"
         constraints = [
             models.CheckConstraint(
-                check=(
+                condition=(
                     models.Q(cart__isnull=False, order__isnull=True)
                     | models.Q(cart__isnull=True, order__isnull=False)
                 ),
                 name="only_one_origin_source",
-            )
+            ),
+            models.UniqueConstraint(
+                fields=["cart", "product"],
+                condition=models.Q(cart__isnull=False),
+                name="unique_cart_product_reservation",
+            ),
+            models.UniqueConstraint(
+                fields=["order", "product"],
+                condition=models.Q(order__isnull=False),
+                name="unique_order_product_reservation",
+            ),
         ]
-        unique_together = ("cart", "product")
         indexes = [
             models.Index(fields=['product', 'expires_at']),
         ]

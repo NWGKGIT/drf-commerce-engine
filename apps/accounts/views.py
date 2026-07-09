@@ -1,24 +1,25 @@
 # accounts/views.py
-from rest_framework import viewsets, permissions
-from rest_framework.exceptions import PermissionDenied
-from .models import Address
-from .serializers import AddressSerializer, AdminSetupSerializer
-from django.http import JsonResponse
-from django.middleware.csrf import get_token
-from django.views.decorators.csrf import ensure_csrf_cookie
-from apps.core.permissions import IsEmailVerified
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from allauth.account.models import EmailAddress
-from rest_framework import status
+from django.db import transaction
+from django.http import JsonResponse
+from django.middleware.csrf import get_token
+from django.utils.crypto import constant_time_compare
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.debug import sensitive_post_parameters
 from drf_spectacular.utils import extend_schema
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
-from django.utils.crypto import constant_time_compare
-from django.db import transaction
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from apps.core.permissions import IsEmailVerified
+
+from .models import Address
+from .serializers import AddressSerializer, AdminSetupSerializer
 
 User = get_user_model()
 
@@ -86,8 +87,15 @@ class SecureAdminSetupView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         validated_data = serializer.validated_data
         setup_token = validated_data.get("setup_token")
+        initial_admin_token = settings.INITIAL_ADMIN_TOKEN
 
-        if not constant_time_compare(setup_token, settings.INITIAL_ADMIN_TOKEN):
+        if not initial_admin_token:
+            return Response(
+                {"error": "Admin setup is not configured."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        if not constant_time_compare(setup_token, initial_admin_token):
             return Response(
                 {"error": "Invalid setup token."}, status=status.HTTP_401_UNAUTHORIZED
             )
@@ -99,7 +107,10 @@ class SecureAdminSetupView(APIView):
                 if admin_count >= 5:
                     return Response(
                         {
-                            "error": "Maximum admin limit (5) reached. No more admins can be created."
+                            "error": (
+                                "Maximum admin limit (5) reached. "
+                                "No more admins can be created."
+                            )
                         },
                         status=status.HTTP_403_FORBIDDEN,
                     )

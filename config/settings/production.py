@@ -1,6 +1,8 @@
-import dj_database_url
-from .base import *
 import os
+
+import dj_database_url
+
+from .base import *
 
 DEBUG = False
 
@@ -41,7 +43,9 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # Static Files / Whitenoise
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STORAGES["staticfiles"] = {
+    "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+}
 
 # Strict CORS
 CORS_ALLOW_ALL_ORIGINS = False
@@ -49,13 +53,10 @@ CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 CORS_ALLOW_CREDENTIALS = True
 
 
-# Email Service (e.g., SendGrid/AWS SES)
-# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-# EMAIL_HOST = env("EMAIL_HOST")
-# ... will implement later
+EMAIL_BACKEND = env(
+    "EMAIL_BACKEND",
+    default="django.core.mail.backends.console.EmailBackend",
+)
 
 ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
-
-
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend" #temporary fix to 500 error post_save signal

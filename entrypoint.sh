@@ -1,10 +1,10 @@
 #!/bin/sh
 
-if [ "$DATABASE" = "postgres" ]
+if [ "$DATABASE" = "postgres" ] || [ -n "$POSTGRES_HOST" ]
 then
     echo "Waiting for postgres..."
 
-    while ! nc -z $POSTGRES_HOST $POSTGRES_PORT; do
+    while ! nc -z "$POSTGRES_HOST" "${POSTGRES_PORT:-5432}"; do
       sleep 0.1
     done
 
@@ -12,6 +12,6 @@ then
 fi
 
 # Run migrations
-python manage.py migrate
+uv run python manage.py migrate
 
 exec "$@"

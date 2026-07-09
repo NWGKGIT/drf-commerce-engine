@@ -1,0 +1,73 @@
+[project]
+name = "drf-commerce-engine"
+version = "0.1.0"
+description = "Django REST Framework commerce backend."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "celery==5.6.0",
+    "chapa==0.1.2",
+    "dj-database-url==3.1.0",
+    "dj-rest-auth==7.0.1",
+    "django==5.2.8",
+    "django-allauth==65.13.1",
+    "django-cors-headers==4.9.0",
+    "django-environ==0.12.0",
+    "django-erd-generator==0.1.6",
+    "django-filter==25.2",
+    "django-redis==6.0.0",
+    "djangorestframework==3.16.1",
+    "djangorestframework-simplejwt==5.5.1",
+    "drf-spectacular==0.29.0",
+    "drf-spectacular-sidecar==2025.12.1",
+    "factory-boy==3.3.3",
+    "faker==40.1.2",
+    "gunicorn==23.0.0",
+    "pillow==12.0.0",
+    "psycopg2-binary==2.9.11",
+    "redis==7.1.0",
+    "requests==2.32.5",
+    "whitenoise==6.11.0",
+]
+
+[dependency-groups]
+dev = [
+    "coverage[toml]",
+    "pytest",
+    "pytest-django",
+    "pytest-mock",
+    "ruff",
+]
+
+[tool.uv]
+package = false
+default-groups = ["dev"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+testpaths = ["apps"]
+addopts = ["--strict-markers"]
+filterwarnings = [
+    "ignore:app_settings.USERNAME_REQUIRED is deprecated:UserWarning:dj_rest_auth.registration.serializers",
+    "ignore:app_settings.EMAIL_REQUIRED is deprecated:UserWarning:dj_rest_auth.registration.serializers",
+    "ignore:No directory at:UserWarning:django.core.handlers.base",
+]
+
+[tool.coverage.run]
+source = ["apps", "config"]
+omit = ["*/migrations/*", "*/tests.py", "*/test_*.py"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+exclude = [
+    ".venv",
+    "apps/*/migrations/*.py",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"config/settings/*.py" = ["F403", "F405"]
